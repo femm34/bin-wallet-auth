@@ -1,9 +1,12 @@
 package com.fecd.bin_wallet_auth.users.domain.model;
 
+import com.fecd.bin_wallet_auth.authentication.domain.model.BinWalletUserDetails;
 import com.fecd.bin_wallet_auth.authorization.domain.model.Role;
 import com.fecd.bin_wallet_auth.sharedKernel.domain.AbstractAuditingEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -21,8 +24,10 @@ public class User extends AbstractAuditingEntity<User> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "first_name")
     private String firstName;
 
+    @Column(name = "last_name")
     private String lastName;
 
     private String username;
@@ -31,13 +36,18 @@ public class User extends AbstractAuditingEntity<User> {
 
     private String password;
 
+    @Column(name = "active", nullable = false)
+    @ColumnDefault("true")
     private boolean active;
-
-    private boolean isFirstLogging;
 
     private LocalDateTime lockTime;
 
-    private int failedAttempts;
+    @Column(name = "failed_attempts")
+    private int failedAttempts = 0;
+
+    public UserDetails toUserDetails() {
+        return new BinWalletUserDetails(this);
+    }
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name = "user_role",

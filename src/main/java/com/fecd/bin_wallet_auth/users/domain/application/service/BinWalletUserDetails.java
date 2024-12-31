@@ -1,6 +1,5 @@
 package com.fecd.bin_wallet_auth.users.domain.application.service;
 
-import com.fecd.bin_wallet_auth.authorization.domain.mapper.RoleMapper;
 import com.fecd.bin_wallet_auth.users.domain.model.User;
 import com.fecd.bin_wallet_auth.users.domain.repository.UserRepository;
 import lombok.AllArgsConstructor;
@@ -16,11 +15,7 @@ public class BinWalletUserDetails implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User userFound = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Username not found"));
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(userFound.getUsername())
-                .password(userFound.getPassword())
-                .authorities(RoleMapper.toGrantedAuthority(userFound.getRoles()))
-                .build();
+        return userRepository.findByUsername(username).map(User::toUserDetails)
+                .orElseThrow(() -> new UsernameNotFoundException("Username not found"));
     }
 }
