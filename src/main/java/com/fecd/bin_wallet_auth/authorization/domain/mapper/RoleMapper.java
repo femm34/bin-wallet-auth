@@ -13,9 +13,11 @@ public class RoleMapper {
         throw new IllegalStateException("Utility class");
     }
 
-    public static Collection<GrantedAuthority> toGrantedAuthority(Set<Role> roles){
+    public static Collection<GrantedAuthority> toGrantedAuthority(Set<Role> roles) {
         return roles.stream()
-                .map(role ->  new SimpleGrantedAuthority(role.getName()))
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toUnmodifiableList());
-    };
+    }
+
+    ;
 }
