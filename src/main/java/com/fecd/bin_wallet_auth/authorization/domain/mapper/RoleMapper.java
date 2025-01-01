@@ -5,6 +5,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,4 +22,15 @@ public class RoleMapper {
     }
 
     ;
+
+    public static List<String> toRolesString(Set<Role> roles) {
+        if (roles == null) {
+            return Collections.emptyList();
+        }
+        return roles.stream()
+                .map(Role::getName)
+                .collect(Collectors.toList());
+    }
+
+
 }

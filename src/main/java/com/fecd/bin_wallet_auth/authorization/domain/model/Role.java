@@ -26,5 +26,5 @@ public class Role extends AbstractAuditingEntity<User> {
     private String description;
 
     @ManyToMany(mappedBy = "users")
-    private Set<User> users = new HashSet<>();
+    private Set<User> users;
 }
