@@ -31,4 +31,6 @@ public abstract class AbstractAuditingEntity<E> implements Serializable {
     @LastModifiedBy
     private E updatedBy;
 
+    private int trace;
+
 }
