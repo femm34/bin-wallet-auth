@@ -1,6 +1,7 @@
 package com.fecd.bin_wallet_auth.api.controllers;
 
 import com.fecd.bin_wallet_auth.shared.constants.ApiPathConstants;
+import com.fecd.bin_wallet_auth.shared.payload.BinWalletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,5 +10,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public interface IHealthCheck {
 
     @GetMapping("/check")
-    ResponseEntity<?> healthCheck();
+    ResponseEntity<BinWalletResponse> healthCheck();
 }
