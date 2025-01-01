@@ -26,7 +26,8 @@ public class JWTService implements IJWTService {
 
 
     @Override
-    public JWTResponse generateToken(Long userId, long expiryTime, String type, String username, String name, Set<Role> authorities) {
+    public JWTResponse generateToken(Long userId, long expiryTime, String type, String username, String name,
+                                     Set<Role> authorities) {
         return JWTResponse.builder().token(Jwts.builder()
                 .setIssuer(jwtIssuer)
                 .setSubject(String.valueOf(userId))

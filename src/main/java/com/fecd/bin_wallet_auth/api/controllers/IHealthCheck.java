@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @RequestMapping(ApiPathConstants.V1_ROUTE + ApiPathConstants.HEALTH)
 public interface IHealthCheck {
+
     @GetMapping("/check")
     ResponseEntity<?> healthCheck();
 }

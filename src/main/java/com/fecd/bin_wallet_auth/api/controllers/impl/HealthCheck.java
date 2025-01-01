@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class HealthCheck implements IHealthCheck {
+
     @Override
     public ResponseEntity<BinWalletResponse> healthCheck() {
         return ResponseEntity.ok(BinWalletResponse.builder()

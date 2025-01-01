@@ -9,10 +9,10 @@ import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@Table(name = "\"user\"")
 @Setter
 @Getter
 @AllArgsConstructor
