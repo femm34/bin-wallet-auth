@@ -1,5 +1,6 @@
 package com.fecd.bin_wallet_auth.api.controllers.impl;
 
+
 import com.fecd.bin_wallet_auth.api.controllers.IHealthCheck;
 import com.fecd.bin_wallet_auth.shared.payload.BinWalletResponse;
 import org.springframework.http.HttpStatus;
