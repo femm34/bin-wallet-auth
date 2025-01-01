@@ -11,7 +11,7 @@ import java.util.List;
 @Configuration
 public class CORSConfig {
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public static CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowCredentials(true);
         corsConfiguration.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:4200"));
