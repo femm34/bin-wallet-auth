@@ -4,7 +4,7 @@ import com.fecd.bin_wallet_auth.authentication.application.dtos.JwtAuthDetails;
 import com.fecd.bin_wallet_auth.authentication.application.service.IJWTService;
 import com.fecd.bin_wallet_auth.shared.constants.dts.TokenType;
 import com.fecd.bin_wallet_auth.users.domain.model.User;
-import com.fecd.bin_wallet_auth.users.domain.repository.UserRepository;
+import com.fecd.bin_wallet_auth.users.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +28,8 @@ public class OPRJWTFilter extends OncePerRequestFilter {
     private final UserRepository userRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
         String jwtToken = ijwtService.extractTokenFromRequest(request);
 
         Optional.ofNullable(ijwtService.getUsernameFromToken(jwtToken))
@@ -52,9 +53,12 @@ public class OPRJWTFilter extends OncePerRequestFilter {
     }
 
     private void settingContext(HttpServletRequest request, UserDetails userDetails, String token) {
-        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
+                new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(),
+                        userDetails.getAuthorities());
 
-        JwtAuthDetails authDetails = JwtAuthDetails.builder().jwtToken(token).webAuthenticationDetailsSource(new WebAuthenticationDetailsSource().buildDetails(request)).build();
+        JwtAuthDetails authDetails =
+                JwtAuthDetails.builder().jwtToken(token).webAuthenticationDetailsSource(new WebAuthenticationDetailsSource().buildDetails(request)).build();
         usernamePasswordAuthenticationToken.setDetails(authDetails);
         SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
     }

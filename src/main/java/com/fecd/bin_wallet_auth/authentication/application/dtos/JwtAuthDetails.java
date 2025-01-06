@@ -9,8 +9,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
 public class JwtAuthDetails {
-    private final
-    WebAuthenticationDetails webAuthenticationDetailsSource;
+    private final WebAuthenticationDetails webAuthenticationDetailsSource;
     private final String jwtToken;
 }
 

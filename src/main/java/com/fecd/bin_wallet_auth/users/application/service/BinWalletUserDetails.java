@@ -1,7 +1,7 @@
-package com.fecd.bin_wallet_auth.users.domain.application.service;
+package com.fecd.bin_wallet_auth.users.application.service;
 
 import com.fecd.bin_wallet_auth.users.domain.model.User;
-import com.fecd.bin_wallet_auth.users.domain.repository.UserRepository;
+import com.fecd.bin_wallet_auth.users.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

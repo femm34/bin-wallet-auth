@@ -5,7 +5,7 @@ import com.fecd.bin_wallet_auth.authentication.infraestructure.configuration.COR
 import com.fecd.bin_wallet_auth.shared.components.OPRJWTFilter;
 import com.fecd.bin_wallet_auth.shared.constants.ApiPathConstants;
 import com.fecd.bin_wallet_auth.shared.constants.Routes;
-import com.fecd.bin_wallet_auth.users.domain.application.service.BinWalletUserDetails;
+import com.fecd.bin_wallet_auth.users.application.service.BinWalletUserDetails;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -40,9 +40,11 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http.csrf(AbstractHttpConfigurer::disable)
+        return http
+                .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(CORSConfig.corsConfigurationSource()))
-                .authorizeHttpRequests(c -> c.requestMatchers(Routes.WHITE_LIST).permitAll().anyRequest().authenticated())
+                .authorizeHttpRequests(c -> c
+                        .requestMatchers(Routes.WHITE_LIST).permitAll().anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .logout(this::logout)
                 .authenticationProvider(new AuthenticationConfig(this.userDetails).authenticationProvider())
