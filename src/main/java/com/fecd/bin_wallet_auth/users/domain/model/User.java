@@ -1,17 +1,23 @@
 package com.fecd.bin_wallet_auth.users.domain.model;
 
 import com.fecd.bin_wallet_auth.authentication.domain.model.BinWalletUserDetails;
+import com.fecd.bin_wallet_auth.authorization.domain.model.PasswordResetToken;
+import com.fecd.bin_wallet_auth.authorization.domain.model.RefreshToken;
 import com.fecd.bin_wallet_auth.authorization.domain.model.Role;
 import com.fecd.bin_wallet_auth.sharedKernel.domain.AbstractAuditingEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
+@DynamicInsert
+@DynamicUpdate
 @Table(name = "\"user\"")
 @Setter
 @Getter
@@ -36,11 +42,13 @@ public class User extends AbstractAuditingEntity<User> {
 
     private String password;
 
-    @Column(name = "active", nullable = false)
+    @Column(name = "active",nullable = false)
     @ColumnDefault("true")
     private boolean active;
 
     private LocalDateTime lockTime;
+
+    private boolean accountNonLocked;
 
     @Column(name = "failed_attempts")
     private int failedAttempts = 0;
@@ -55,6 +63,12 @@ public class User extends AbstractAuditingEntity<User> {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles;
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private RefreshToken refreshToken;
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private PasswordResetToken resetToken;
 
     public void addRole(Role role) {
         this.roles.add(role);

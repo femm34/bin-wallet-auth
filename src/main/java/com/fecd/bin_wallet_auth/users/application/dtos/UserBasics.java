@@ -1,6 +1,6 @@
-package com.fecd.bin_wallet_auth.users.domain.application.dtos;
+package com.fecd.bin_wallet_auth.users.application.dtos;
 
-public interface UserProjection {
+public interface UserBasics {
     Long getId();
     String getFirstName();
     String getLastName();

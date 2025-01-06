@@ -10,17 +10,21 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Set;
 
+@Service
 public class JWTService implements IJWTService {
 
     @Value("${jwt.secret}")
     private String jwtSecret;
+
     @Value("${jwt.issuer}")
     private String jwtIssuer;
 
