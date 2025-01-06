@@ -9,16 +9,14 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.temporal.TemporalAmount;
-import java.time.temporal.TemporalUnit;
 
 @AllArgsConstructor
 @Service
 @Transactional
-public class UserFailedAttempts {
+public class UserFailedAttemptsService {
 
-    public static final int MAX_FAILED_ATTEMPTS = 3;
-    private static final long LOCK_TIME_DURATION = Duration.ofMinutes(2).toMillis();
+    public static final int MAX_FAILED_ATTEMPTS = 5;
+    public static final long LOCK_TIME_DURATION = Duration.ofMinutes(2).toMillis();
 
     private final UserRepository userRepository;
 

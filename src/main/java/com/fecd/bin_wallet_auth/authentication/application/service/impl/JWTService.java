@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Set;
@@ -23,6 +24,7 @@ public class JWTService implements IJWTService {
 
     @Value("${jwt.secret}")
     private String jwtSecret;
+
     @Value("${jwt.issuer}")
     private String jwtIssuer;
 
