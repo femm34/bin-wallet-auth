@@ -13,6 +13,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -42,7 +43,7 @@ public class User extends AbstractAuditingEntity<User> {
 
     private String password;
 
-    @Column(name = "active",nullable = false)
+    @Column(name = "active", nullable = false)
     @ColumnDefault("true")
     private boolean active;
 
@@ -67,8 +68,8 @@ public class User extends AbstractAuditingEntity<User> {
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private RefreshToken refreshToken;
 
-    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
-    private PasswordResetToken resetToken;
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
+    private List<PasswordResetToken> resetTokens;
 
     public void addRole(Role role) {
         this.roles.add(role);
@@ -78,5 +79,10 @@ public class User extends AbstractAuditingEntity<User> {
     public void removeRole(Role role) {
         this.roles.remove(role);
         role.getUsers().remove(this);
+    }
+
+    public void addPasswordResetToken(PasswordResetToken passwordResetToken) {
+        this.resetTokens.add(passwordResetToken);
+        passwordResetToken.setUser(this);
     }
 }

@@ -2,10 +2,16 @@ package com.fecd.bin_wallet_auth.users.service;
 
 import com.fecd.bin_wallet_auth.authentication.application.dtos.JWTResponse;
 import com.fecd.bin_wallet_auth.authentication.application.service.IJWTService;
+import com.fecd.bin_wallet_auth.authorization.domain.model.PasswordResetToken;
 import com.fecd.bin_wallet_auth.authorization.domain.model.Role;
+import com.fecd.bin_wallet_auth.authorization.exeptions.PasswordResetTokenExpiredException;
 import com.fecd.bin_wallet_auth.authorization.repository.RoleRepository;
+import com.fecd.bin_wallet_auth.shared.constants.dts.TokenStatus;
 import com.fecd.bin_wallet_auth.shared.constants.dts.TokenType;
+import com.fecd.bin_wallet_auth.shared.exceptions.BinWalletException;
 import com.fecd.bin_wallet_auth.shared.payload.BinWalletResponse;
+import com.fecd.bin_wallet_auth.shared.utils.CookieUtil;
+import com.fecd.bin_wallet_auth.users.domain.model.Email;
 import com.fecd.bin_wallet_auth.users.domain.model.User;
 import com.fecd.bin_wallet_auth.users.exceptions.UserEmailAlreadyTakenException;
 import com.fecd.bin_wallet_auth.users.exceptions.UsernameAlreadyTakenException;
@@ -13,13 +19,16 @@ import com.fecd.bin_wallet_auth.users.repository.UserRepository;
 import com.fecd.bin_wallet_auth.users.request.UserRequest;
 import com.fecd.bin_wallet_auth.users.request.UserRequestLogin;
 import com.fecd.bin_wallet_auth.users.request.UserRequestPassword;
+import com.fecd.bin_wallet_auth.users.request.UserRequestToken;
+import com.fecd.bin_wallet_auth.users.service.email.EmailService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -28,12 +37,7 @@ import org.springframework.stereotype.Service;
 
 import javax.security.auth.login.AccountLockedException;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.Temporal;
-import java.time.temporal.TemporalAccessor;
 import java.util.Set;
 
 import static com.fecd.bin_wallet_auth.users.service.UserFailedAttemptsService.MAX_FAILED_ATTEMPTS;
@@ -41,14 +45,18 @@ import static com.fecd.bin_wallet_auth.users.service.UserFailedAttemptsService.M
 @Service
 @AllArgsConstructor
 @Slf4j
-public class UserServiceImplementation implements UserService {
+public class UserServiceAuthImplementation implements UserServiceAuth {
 
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authentication;
     private final IJWTService jwtService;
+    private final EmailService emailService;
+    private final PasswordResetService passwordResetService;
     public static final long LOCK_TIME_DURATION = 2;
+    private final CookieUtil cookieUtil;
+    private final Duration TOKEN_EXPIRE_TIME = Duration.ofMinutes(5);
 
     @Override
     public User signUpUser(UserRequest userRequest) {
@@ -83,21 +91,20 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public JWTResponse signInUser(UserRequestLogin userRequestLogin) throws AccountLockedException {
+    public JWTResponse signInUser(UserRequestLogin userRequestLogin, HttpServletResponse response) throws AccountLockedException {
         User user = this.userRepository.findByUsername(userRequestLogin.getUsername())
                 .orElseThrow(() ->
                         new UsernameNotFoundException("Invalid user. Try again."));
 
         if (!user.isAccountNonLocked()) {
             LocalDateTime unlockTime = user.getLockTime();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("mm:ss");
-
 
             if (LocalDateTime.now().isBefore(unlockTime)) {
                 Duration minutesLeft = Duration.between(LocalDateTime.now(), user.getLockTime());
 
-                throw new AccountLockedException("Your account is locked. Try again in " + String.format("%02d:%02d",
-                        minutesLeft.toMinutes(), minutesLeft.toSeconds() % 60) + " minutes.");
+                throw new AccountLockedException("Your account is locked. Try again in " +
+                        String.format("%02d:%02d", minutesLeft.toMinutes(), minutesLeft.toSeconds() % 60) + " minutes" +
+                        ".");
             } else {
                 user.setAccountNonLocked(true);
                 user.setFailedAttempts(0);
@@ -112,13 +119,21 @@ public class UserServiceImplementation implements UserService {
                             userRequestLogin.getPassword()));
 
             if (authentication.isAuthenticated()) {
-                return jwtService.generateToken(user.getId(),
-                        Duration.ofMinutes(5).toMillis(),
+                String jwtToken = jwtService.generateToken(
+                        user.getId(),
+                        Duration.ofMinutes(30).toMillis(),
                         TokenType.ACCESS_TOKEN.toString(),
                         user.getUsername(),
                         user.getFirstName(),
                         user.getRoles()
-                );
+                ).getToken();
+
+                Cookie jwtCookie = new Cookie("access_token",jwtToken);
+                jwtCookie.setHttpOnly(true);
+                jwtCookie.setPath("/");
+                response.addCookie(jwtCookie);
+
+                return new JWTResponse(jwtToken);
             }
         } catch (BadCredentialsException ex) {
             int failedAttempts = user.getFailedAttempts() + 1;
@@ -140,7 +155,53 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public BinWalletResponse resetPassword(UserRequestPassword userRequestPassword) {
-        return null;
+    public BinWalletResponse changePassword(UserRequestPassword userRequestPassword) {
+        User user = this.userRepository.findUserByResetPasswordToken(userRequestPassword.getToken()).orElseThrow();
+        boolean isValidToken = this.passwordResetService.validateResetPasswordToken(userRequestPassword.getToken(),
+                user.getUsername());
+
+        if (user != null) {
+            user.setPassword(this.passwordEncoder.encode(userRequestPassword.getPassword()));
+            this.userRepository.save(user);
+        }
+
+        return BinWalletResponse.builder()
+                .code(HttpStatus.OK.value())
+                .data("password reset successfully!")
+                .status(HttpStatus.OK)
+                .build();
+    }
+
+    @Override
+    public void resetPassword(UserRequestToken userRequestToken) {
+        User userToResetPassword = this.userRepository.findByEmail(userRequestToken.getEmail())
+                .orElseThrow(() -> new BinWalletException("email does not exists!"));
+
+        String token = jwtService.generateToken(userToResetPassword.getId(),
+                        TOKEN_EXPIRE_TIME.toMillis(),
+                        TokenType.ACCESS_TOKEN.toString(),
+                        userToResetPassword.getUsername(),
+                        userToResetPassword.getFirstName(),
+                        userToResetPassword.getRoles())
+                .getToken();
+
+        PasswordResetToken passwordResetToken = PasswordResetToken.builder()
+                .token(token)
+                .expireDate(LocalDateTime.now().plusMinutes(5))
+                .status(TokenStatus.ACTIVE)
+                .build();
+
+        userToResetPassword.addPasswordResetToken(passwordResetToken);
+        this.userRepository.save(userToResetPassword);
+
+        Email emailToSend = Email.builder()
+                .recipient(userToResetPassword.getEmail())
+                .subject("Token to reset your password")
+                .text("The toke generated was: " + token + "\n" + "The toke will expire in " + String.format("%02d " +
+                                "minutes",
+                        TOKEN_EXPIRE_TIME.toMinutes()))
+                .build();
+
+        this.emailService.sendEmail(emailToSend);
     }
 }

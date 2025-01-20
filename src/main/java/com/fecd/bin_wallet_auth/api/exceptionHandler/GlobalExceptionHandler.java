@@ -1,11 +1,11 @@
 package com.fecd.bin_wallet_auth.api.exceptionHandler;
 
+import com.fecd.bin_wallet_auth.authorization.exeptions.PasswordResetTokenExpiredException;
 import com.fecd.bin_wallet_auth.shared.exceptions.BinWalletException;
 import com.fecd.bin_wallet_auth.shared.payload.BinWalletResponse;
 import com.fecd.bin_wallet_auth.users.exceptions.UserEmailAlreadyTakenException;
 import com.fecd.bin_wallet_auth.users.exceptions.UsernameAlreadyTakenException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -27,7 +27,6 @@ public class GlobalExceptionHandler {
 
     }
 
-    ;
 
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<BinWalletResponse> handleUserNotFoundException(UsernameNotFoundException ex) {
@@ -81,6 +80,18 @@ public class GlobalExceptionHandler {
                         .data(null)
                         .code(HttpStatus.LOCKED.value())
                         .status(HttpStatus.LOCKED)
+                        .build());
+
+    }
+
+    @ExceptionHandler(PasswordResetTokenExpiredException.class)
+    public ResponseEntity<BinWalletResponse> handleBadCredentialException(PasswordResetTokenExpiredException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(BinWalletResponse.builder()
+                        .message(ex.getMessage())
+                        .data("")
+                        .code(HttpStatus.FORBIDDEN.value())
+                        .status(HttpStatus.FORBIDDEN)
                         .build());
 
     }
