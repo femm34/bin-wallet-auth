@@ -6,16 +6,19 @@ import com.fecd.bin_wallet_auth.users.domain.model.User;
 import com.fecd.bin_wallet_auth.users.request.UserRequest;
 import com.fecd.bin_wallet_auth.users.request.UserRequestLogin;
 import com.fecd.bin_wallet_auth.users.request.UserRequestPassword;
+import com.fecd.bin_wallet_auth.users.request.UserRequestToken;
+import jakarta.servlet.http.HttpServletResponse;
 
 import javax.security.auth.login.AccountLockedException;
 
-public interface UserService {
+public interface UserServiceAuth {
 
     User signUpUser(UserRequest userRequest);
 
-    JWTResponse signInUser(UserRequestLogin userRequestLogin) throws AccountLockedException;
+    JWTResponse signInUser(UserRequestLogin userRequestLogin, HttpServletResponse response) throws AccountLockedException;
 
-    BinWalletResponse resetPassword(UserRequestPassword userRequestPassword);
+    BinWalletResponse changePassword(UserRequestPassword userRequestPassword);
 
+    public void resetPassword(UserRequestToken userRequestToken);
 
 }

@@ -19,7 +19,7 @@ public interface IJWTService {
 
     boolean isExpired(String token);
 
-    Long getUserIdFromToken(String token);
+    String getUserIdFromToken(String token);
 
     String getUsernameFromToken(String token);
 

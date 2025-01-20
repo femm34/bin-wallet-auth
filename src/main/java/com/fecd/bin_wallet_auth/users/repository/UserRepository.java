@@ -8,9 +8,12 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.parameters.P;
+import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("""
@@ -25,6 +28,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("select u from User u where u.username = :username")
     Optional<User> findByUsername(@Param("username") String username);
 
+    @Query("""
+            select u
+                   from User u
+                   inner join PasswordResetToken prt on prt.user.id = u.id 
+                   where prt.token = :token""")
+    Optional<User> findUserByResetPasswordToken(@Param("token") String token);
+
     @Query(value = "SELECT EXISTS(SELECT 1 FROM \"user\" u WHERE u.username = :username)", nativeQuery = true)
     boolean existsUserByUsername(@Param("username") String username);
 
@@ -34,4 +44,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("update User u set u.failedAttempts = :failAttempts where u.username = :username")
     @Modifying
     void updateFailedAttempts(int failAttempts, String username);
+
+    @Query("""
+            SELECT u
+               FROM User u WHERE u.email = :email""")
+    Optional<User> findByEmail(@Param("email") String email);
+
+    @Query("select u from User u")
+    List<UserBasics> findAllUsers();
 }

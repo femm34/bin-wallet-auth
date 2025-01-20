@@ -1,8 +1,8 @@
 package com.fecd.bin_wallet_auth.shared.constants.dts;
 
 public enum TokenStatus {
-    ACTIVE("active"),
-    EXPIRED("expired");
+    ACTIVE("ACTIVE"),
+    EXPIRED("EXPIRED");
 
     private final String value;
 

@@ -9,6 +9,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -83,9 +84,14 @@ public class JWTService implements IJWTService {
     }
 
     @Override
-    public Long getUserIdFromToken(String token) {
+    public String getUserIdFromToken(String token) {
         try {
-            return Long.parseLong(getClaims(token).getSubject());
+            return Jwts.parserBuilder()
+                    .setSigningKey(this.jwtSecret.getBytes(StandardCharsets.UTF_8))
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .get("sub", String.class);
         } catch (Exception e) {
             return null;
         }
